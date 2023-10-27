@@ -1,0 +1,225 @@
+1--
+
+CREATE TABLE Livro (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    ISBN VARCHAR(15) NOT NULL UNIQUE,
+    data_publicacao DATE,
+    resumo TEXT,
+    id_genero INT,
+    id_editora INT,
+    imagem_capa BLOB,
+    FOREIGN KEY (id_genero) REFERENCES Genero(id),
+    FOREIGN KEY (id_editora) REFERENCES Editora(id)
+);
+
+INSERT INTO Livro (titulo, ISBN, data_publicacao, resumo, id_genero, id_editora) VALUES
+('Aventuras Espaciais', '123-4567890123', '2020-05-15', 'Um livro sobre aventuras em um universo distante.', 2, 1),
+('Amor em Lisboa', '789-0123456789', '2022-01-10', 'Uma história de amor na capital portuguesa.', 1, 2),
+('História das Civilizações', '456-7890123456', '2015-06-10', 'Uma análise profunda das maiores civilizações.', 3, 3),
+('Pesadelo no Vale', '123-7894561230', '2019-08-23', 'Uma história aterrorizante em um vale sombrio.', 4, 1),
+('Segredos do Oceano', '890-1234567890', '2021-03-10', 'Mistérios ocultos nas profundezas do oceano.', 2, 5),
+('A Casa da Colina', '123-4567894561', '2018-10-25', 'Uma casa antiga esconde segredos perturbadores.', 4, 4),
+('A Vida de Einstein', '456-7891234562', '2019-04-18', 'Biografia detalhada do grande físico.', 5, 3),
+('Floresta Encantada', '789-1234561234', '2017-12-12', 'Criaturas mágicas em uma floresta secreta.', 1, 2),
+('Guerra dos Planetas', '321-6549873210', '2020-08-21', 'Conflito intergaláctico entre civilizações alienígenas.', 2, 1),
+('Passado Esquecido', '654-9873216543', '2014-11-10', 'Segredos de família vêm à tona após uma descoberta.', 1, 4),
+('Caminhos da Revolução', '987-3216549876', '2015-02-23', 'Análise de revoluções históricas e suas consequências.', 3, 3),
+('Montanha da Perdição', '147-2583691472', '2016-05-15', 'Expedição a uma montanha amaldiçoada.', 4, 5),
+('Mentes Brilhantes', '258-3691472583', '2021-09-09', 'Perfis de grandes gênios da humanidade.', 5, 2),
+('Império Estelar', '369-1472583694', '2022-06-30', 'A ascensão e queda de um império no espaço.', 2, 1),
+('Vozes do Passado', '741-8529637415', '2013-07-17', 'Romance histórico ambientado na Roma Antiga.', 1, 5),
+('Jornada ao Núcleo', '852-9637418526', '2019-03-03', 'Aventura ao centro da Terra.', 2, 4),
+('Catedral das Sombras', '963-7418529637', '2018-04-04', 'Mistérios envolvendo uma antiga catedral.', 4, 3),
+('Homens de Ciência', '159-3574861598', '2021-11-11', 'Retratos biográficos de cientistas revolucionários.', 5, 2),
+('Paixões Proibidas', '357-4861593579', '2017-08-19', 'Romance ambientado na França do século XVIII.', 1, 4),
+('Galáxias Distantes', '753-1594867531', '2020-10-01', 'Descobertas em galáxias nunca antes exploradas.', 2, 1);
+
+CREATE TABLE Genero (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome_genero VARCHAR(255) NOT NULL
+
+INSERT INTO Genero (nome_genero) VALUES
+('Romance'),
+('Ficção Científica'),
+('História'),
+('Terror'),
+('Biografia');
+
+DELIMETER $$
+
+CREATE FUNCTION total_livros_por_genero(nome_genero VARVHAR(255))
+RETURNS INR BEGIN;
+
+DECLARE total INT;
+DECLARE final INT DEFAULT 0;
+DECLARE cursordelivros CURSOR FOR SELECT COUNT (*) FROM livros WHERE genero=nome_genero;
+DECLARE CONTINUE HANDLER FOR NOT FOUND SET final=1;
+
+OPEN cursordelivros;
+
+FETCH cursordelivros INTO total;
+IF final=0 THEN
+  CLOSE cursordelivros;
+  RETURN total;
+ELSE
+  CLOSE cursordelivros;
+  RETURN total;
+END IF;
+END $$
+
+DELIMETER;
+
+
+2--
+
+CREATE TABLE Autor (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    primeiro_nome VARCHAR(255) NOT NULL,
+    ultimo_nome VARCHAR(255) NOT NULL,
+    data_nascimento DATE,
+    nacionalidade VARCHAR(255)
+
+CREATE TABLE Livro_Autor (
+    id_livro INT,
+    id_autor INT,
+    PRIMARY KEY (id_livro, id_autor),
+    FOREIGN KEY (id_livro) REFERENCES Livro(id),
+    FOREIGN KEY (id_autor) REFERENCES Autor(id)
+);
+
+DELIMETER $$
+
+CREATE FUNCTION listar_livros_por_autor(primeiro_nome_autor VARCHAR(255))
+RETURNS TEXT
+BEGIN
+
+DECLARE lista_livros TEXT ;
+DECLARE livro_id INT;
+DECLARE final INT DEFAULT 0;
+DECLARE cursordelivros CURSOR FOR
+SELECT LA.livro_id
+FROM Livro_Autor AS LA
+JOIN Autor AS A ON LA.autor_id=A.autor_id
+WHERE A.primeiro_nome=primeiro_nome_autor
+DECLARE CONTINUE HANDLER FOR NOT FOUND SET final=1;
+
+SET lista_livros = '';
+
+OPEN cursordelivros;
+
+loopcursor:LOOP
+  FETCH cursor_livros INTO livro_id;
+  IF final=1 THE
+    LEAVE loopcursor;
+  END IF;
+
+  SELECT GROUP_CONCAT(titulo) INTO lista_livros
+  FROM livros
+  WHERE livro_id=livro_id;
+
+END LOOP;
+
+CLOSE cursordelivros
+
+RETURN lista_livros;
+END $$
+
+DELIMETER;
+
+3--
+
+DELIMITER $$
+
+CREATE FUNCTION atualizar_resumos()
+BEGIN
+  DECLARE final INT DEFAULT 0;
+  DECLARE livro_id INT;
+  DECLARE resumo_atual TEXT;
+  DECLARE cursordelivros CURSOR FOR SELECT livro_id, resumo FROM Livro;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET final = 1;
+
+  OPEN cursordelivros;
+
+  loop_cursor: LOOP
+    FETCH cursordelivros INTO livro_id, resumo_atual;
+    IF final = 1 THEN
+      LEAVE cursor_loop;
+    END IF;
+
+    SET resumo_atual = CONCAT(resumo_atual, ' Este é um excelente livro!');
+    
+    UPDATE Livro
+    SET resumo = resumo_atual
+    WHERE livro_id = livro_id;
+  END LOOP;
+
+  CLOSE cursordelivros;
+END$$
+
+DELIMITER ;
+
+4--
+
+CREATE TABLE Editora (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome_editora VARCHAR(255) NOT NULL,
+    endereco VARCHAR(255),
+    telefone VARCHAR(20)
+);
+
+INSERT INTO Editora (nome_editora, endereco, telefone) VALUES
+('Editora Central', 'Rua das Flores, 100', '(11) 1234-5678'),
+('Publicações Modernas', 'Avenida Central, 500', '(11) 8765-4321'),
+('Literatura Pura', 'Rua dos Livros, 55', '(11) 2345-6789'),
+('Narrativas Ltda', 'Alameda dos Autores, 300', '(11) 3456-7890'),
+('Contos e Cia', 'Boulevard dos Contos, 400', '(11) 4567-8901');
+
+DELIMITER $$
+
+CREATE FUNCTION media_livros_por_editora() RETURNS DECIMAL(10,2)
+BEGIN
+  DECLARE id INT;
+  DECLARE total_livros INT;
+  DECLARE total_editoras INT;
+  DECLARE media DECIMAL(10,2);
+  
+  SET total_livros = 0;
+  SET total_editoras = 0;
+  SET media = 0;
+
+  DECLARE cursordeeditoras CURSOR FOR SELECT id FROM Editoras;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET total_editoras = total_editoras + 1;
+
+  OPEN cursordeeditoras;
+
+  loop_editora: LOOP
+    FETCH cursor_editoras INTO id;
+    IF total_editoras > 0 THEN
+      LEAVE loop_editora;
+    END IF;
+
+    DECLARE cursordelivros CURSOR FOR SELECT COUNT(*) FROM Livros WHERE editora_id = id;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET total_livros = total_livros + 0;
+
+    OPEN cursordelivros;
+
+    loop_livros: LOOP
+      FETCH cursor_livros INTO total_livros;
+      IF total_livros = 0 THEN
+        LEAVE livros_loop;
+      END IF;
+    END LOOP;
+
+    CLOSE cursordelivros;
+
+    SET media = media + (total_livros / total_editoras);
+  END LOOP;
+
+  CLOSE cursordeeditoras;
+
+  RETURN media;
+END$$
+
+DELIMITER ;
